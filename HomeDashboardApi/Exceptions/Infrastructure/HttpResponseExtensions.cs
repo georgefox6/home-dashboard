@@ -1,0 +1,67 @@
+using System.Net;
+using System.Text;
+using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json;
+
+namespace HomeDashboardApi.Exceptions.Infrastructure
+{
+    /// <summary>
+    /// Defines a collection of extensions for a <see cref="HttpResponse" /> object.
+    /// </summary>
+    public static class HttpResponseExtensions
+    {
+        /// <summary>
+        /// Writes an object value as JSON to the specified <paramref name="response" />.
+        /// </summary>
+        /// <param name="response">The HTTP response to write to.</param>
+        /// <param name="statusCode">The status code of the response.</param>
+        /// <param name="value">The object to serialize as JSON.</param>
+        /// <returns>An asynchronous operation.</returns>
+        public static async Task WriteJsonAsync(
+            this HttpResponse response,
+            HttpStatusCode statusCode,
+            object value )
+        {
+            await WriteJsonAsync( response, statusCode, value, null );
+        }
+
+        /// <summary>
+        /// Writes an object value as JSON to the specified <paramref name="response" />.
+        /// </summary>
+        /// <param name="response">The HTTP response to write to.</param>
+        /// <param name="statusCode">The status code of the response.</param>
+        /// <param name="value">The object to serialize as JSON.</param>
+        /// <param name="serializerSettings">The JSON serializer settings.</param>
+        /// <returns>An asynchronous operation.</returns>
+        public static async Task WriteJsonAsync(
+            this HttpResponse response,
+            HttpStatusCode statusCode,
+            object value,
+            JsonSerializerSettings serializerSettings )
+        {
+            await WriteJsonAsync( response, (int) statusCode, value, serializerSettings );
+        }
+
+        /// <summary>
+        /// Writes an object value as JSON to the specified <paramref name="response" />.
+        /// </summary>
+        /// <param name="response">The HTTP response to write to.</param>
+        /// <param name="statusCode">The status code of the response.</param>
+        /// <param name="value">The object to serialize as JSON.</param>
+        /// <param name="serializerSettings">The JSON serializer settings.</param>
+        /// <returns>An asynchronous operation.</returns>
+        public static async Task WriteJsonAsync(
+            this HttpResponse response,
+            int statusCode,
+            object value,
+            JsonSerializerSettings serializerSettings )
+        {
+            response.ContentType = new MediaTypeHeaderValue( "application/json" ) { Encoding = Encoding.UTF8 }.ToString();
+            response.StatusCode = statusCode;
+
+            string json = JsonConvert.SerializeObject( value, Formatting.Indented, serializerSettings );
+
+            await response.WriteAsync( json, Encoding.UTF8 );
+        }
+    }
+}
